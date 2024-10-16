@@ -17,7 +17,7 @@ export const startDiscountIntervals = () => {
 // 인터벌을 설정하고 `Map`에 추가
 export const setTrackedInterval = (
   key: string,
-  callback: () => void,
+  callback: TimerHandler,
   delay: number
 ) => {
   const intervalId = setInterval(callback, delay);

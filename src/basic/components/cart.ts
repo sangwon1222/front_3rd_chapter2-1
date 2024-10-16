@@ -2,6 +2,7 @@ import { calcDayDiscount, validDayDiscount } from '@basic/hooks/discount/day';
 import { createElementWithProps, appendChildren } from '@basic/lib/dom';
 import { findCartItemById, findProductById } from '@basic/utils/find';
 import { getProductData, updateStock } from '@basic/store/product';
+import { totalAmountStore } from '@basic/store/totalAmount';
 import { addEvent } from '@basic/utils/event/eventManager';
 import CustomHTMLElemnt from '@basic/lib/element';
 import ItemInCart from './itemInCart';
@@ -24,7 +25,6 @@ import {
   addItemToCart,
   cartStore,
 } from '@basic/store/cart';
-import { totalAmountStore } from '@basic/store/totalAmount';
 
 export default class Cart extends CustomHTMLElemnt {
   private itemList: ItemInCart[] = [];

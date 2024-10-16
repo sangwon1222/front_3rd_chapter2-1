@@ -1,4 +1,5 @@
 import {
+  LIGHTNING_INTERVAL_KEY,
   LIGHTNING_SALE_DELAY,
   LIGHTNING_SALE_INTERVAL,
 } from '@basic/constants/discount';
@@ -9,21 +10,19 @@ import {
 } from './intervalManager';
 import { applyLightningSale } from '@basic/hooks/discount/lightning';
 
-const INTERVAL_KEY = 'lightning-interval';
-
 // 번개 할인 인터벌
 export const startLightningInterval = () => {
   setTimeout(() => {
     // 기존 인터벌이 있을 경우 먼저 해제
-    const hasInterval = hasIntervals(INTERVAL_KEY);
+    const hasInterval = hasIntervals(LIGHTNING_INTERVAL_KEY);
     if (hasInterval) {
-      const prevInterval = getIntervals(INTERVAL_KEY);
+      const prevInterval = getIntervals(LIGHTNING_INTERVAL_KEY);
       clearInterval(prevInterval);
     }
 
     // 인터벌 등록
     setTrackedInterval(
-      INTERVAL_KEY,
+      LIGHTNING_INTERVAL_KEY,
       applyLightningSale,
       LIGHTNING_SALE_INTERVAL
     );

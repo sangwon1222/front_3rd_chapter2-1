@@ -40,7 +40,7 @@ export const applySuggestionDiscount = () => {
   if (!lastItemId) return; // 마지막 선택 아이템이 없으면 return
 
   const { productList } = productStore.getState();
-  1;
+
   // 마지막 선택 아이템과 다르고 재고가 있는 추천 상품 찾기
   const suggestedItem = productList.find(
     ({ id, quantity }: ProductType) => id !== lastItemId && quantity > 0
@@ -49,7 +49,7 @@ export const applySuggestionDiscount = () => {
   // 추천 상품이 없으면 return
   if (!suggestedItem) return;
 
-  const { id, name, price, quantity } = suggestedItem;
+  const { id, name, price } = suggestedItem;
 
   // 할인 적용
   const updatePrice = applyDiscount(price, SUGGESTION_DISCOUNT_RATE);
