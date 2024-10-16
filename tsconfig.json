@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es6",
+    "lib": ["ES2017", "DOM"],
+    "moduleResolution": "node",
+    "esModuleInterop": true, // CommonJS와의 모듈 호환성
+    "skipLibCheck": true, // 라이브러리 타입 검사를 건너뜀 (컴파일 속도 향상)
+    "forceConsistentCasingInFileNames": true, // 파일명 대소문자 일관성 체크
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@basic/*": ["src/basic/*"]
+    }
+  }
+}
