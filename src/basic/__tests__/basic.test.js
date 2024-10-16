@@ -7,12 +7,20 @@ import {
   it,
   vi,
 } from 'vitest';
+import {
+  LIGHTNING_SALE_DELAY,
+  LIGHTNING_SALE_INTERVAL,
+  SUGGESTION_DISCOUNT_DELAY,
+  SUGGESTION_DISCOUNT_INTERVAL,
+} from '../constants/discount.ts';
+import App from '../app.ts';
+import { productStore } from '../store/product.ts';
 
 describe('basic test', () => {
   describe.each([
     { type: 'origin', loadFile: () => import('../../main.js') },
     { type: 'basic', loadFile: () => import('../main.basic.js') },
-  ])('$type 장바구니 시나리오 테스트', ({ loadFile }) => {
+  ])('$type 장바구니 시나리오 테스트', ({ type, loadFile }) => {
     let sel, addBtn, cartDisp, sum, stockInfo;
 
     beforeAll(async () => {
@@ -32,7 +40,7 @@ describe('basic test', () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-      // 화요일 test때문에 월요일로 고정하고 테스트
+      // 화요일 할인 기능 test 때문에 월요일로 고정하고 테스트
       const mockDate = new Date('2024-10-14');
       vi.setSystemTime(mockDate);
     });
@@ -122,11 +130,62 @@ describe('basic test', () => {
     });
 
     it('번개세일 기능이 정상적으로 동작하는지 확인', () => {
-      // 일부러 랜덤이 가득한 기능을 넣어서 테스트 하기를 어렵게 만들었습니다. 이런 코드는 어떻게 하면 좋을지 한번 고민해보세요!
+      if (type === 'origin') return;
+
+      // Given: 셀렉트박스 모킹
+      const mockSelectBox = { update: vi.fn() };
+      const lastItemId = 'p1';
+      const selectBox = mockSelectBox;
+      vi.spyOn(App, 'getInstance').mockReturnValue({ lastItemId, selectBox });
+
+      // Given: 랜덤 요소 모킹
+      const mockRandomValue = 0; // 첫 번째 제품 선택
+      vi.spyOn(Math, 'random').mockReturnValue(mockRandomValue);
+
+      // Given: 번개세일 확률 모킹
+      global.LIGHTNING_SALE_PROBABILITY = 1;
+
+      // When: 번개세일 인터벌 실행 및 타이머 경과
+      vi.advanceTimersByTime(LIGHTNING_SALE_DELAY); // 첫 번째 setTimeout 경과
+      vi.advanceTimersByTime(LIGHTNING_SALE_INTERVAL); // 첫 번째 setInterval 경과
+
+      // Then: 번개세일 팝업 / 셀렉트박스 업데이트 확인
+      expect(window.alert).toHaveBeenCalledWith(
+        `번개세일! 상품1이(가) 20% 할인 중입니다!`
+      );
+      expect(mockSelectBox.update).toHaveBeenCalled(); // 셀렉트박스 업데이트 확인
     });
 
     it('추천 상품 알림이 표시되는지 확인', () => {
-      // 일부러 랜덤이 가득한 기능을 넣어서 테스트 하기를 어렵게 만들었습니다. 이런 코드는 어떻게 하면 좋을지 한번 고민해보세요!
+      if (type === 'origin') return;
+
+      // Given: App.getInstance 모킹
+      const mockSelectBox = { update: vi.fn() };
+      vi.spyOn(App, 'getInstance').mockReturnValue({
+        lastItemId: 'p1', // 마지막 선택된 아이템 ID
+        selectBox: mockSelectBox,
+      });
+
+      // Given: productList 모킹
+      const mockProductList = [
+        { id: 'p1', name: '상품1', price: 10000, quantity: 10 }, // 마지막 선택된 상품
+        { id: 'p2', name: '상품2', price: 20000, quantity: 5 }, // 재고가 있는 추천 상품
+        { id: 'p3', name: '상품3', price: 30000, quantity: 0 }, // 재고가 없는 상품
+      ];
+      const { productList } = productStore.getState();
+      productStore.setState({ productList: mockProductList });
+
+      // When: 추천 세일 인터벌 실행 및 타이머 경과
+      vi.advanceTimersByTime(SUGGESTION_DISCOUNT_DELAY); // 첫 번째 setTimeout 경과
+      vi.advanceTimersByTime(SUGGESTION_DISCOUNT_INTERVAL); // 첫 번째 setInterval 경과
+
+      // Then: 추천 세일 팝업 / 셀렉트박스 업데이트 확인
+      expect(window.alert).toHaveBeenCalledWith(
+        '상품2은(는) 어떠세요? 지금 구매하시면 5% 추가 할인!'
+      );
+      expect(mockSelectBox.update).toHaveBeenCalled(); // 셀렉트박스 업데이트 확인
+
+      productStore.setState({ productList });
     });
 
     it('화요일 할인이 적용되는지 확인', () => {
