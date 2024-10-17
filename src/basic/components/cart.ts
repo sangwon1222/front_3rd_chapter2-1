@@ -41,7 +41,7 @@ export default class Cart extends CustomHTMLElemnt {
           originalPrice: number;
           itemQty: number;
         },
-        cur: CartProductType
+        cur: ItemType
       ) => {
         const discountRate = getDiscountRate(cur.id, cur.quantity);
         const totalPrice = cur.price * cur.quantity;
