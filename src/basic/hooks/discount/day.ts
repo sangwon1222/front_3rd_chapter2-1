@@ -1,8 +1,4 @@
-import {
-  BULK_DISCOUNT_RATE,
-  MINIMUM_BULK_DISCOUNT_QTY,
-} from '@basic/constants/discount';
-import { calcDiscountRate } from './rate';
+import { DAY_DISCOUNT_RATE } from '@basic/constants/discount';
 
 /**
  * 요일에 따른 추가 할인
@@ -14,8 +10,8 @@ export const calcDayDiscount = (
   discountedPrice: number,
   discountRate: number
 ) => {
-  const dayPrice = discountedPrice * (1 - 0.1);
-  const dayRate = Math.max(discountRate, 0.1);
+  const dayPrice = discountedPrice * (1 - DAY_DISCOUNT_RATE);
+  const dayRate = Math.max(discountRate, DAY_DISCOUNT_RATE);
   return { dayPrice, dayRate };
 };
 
