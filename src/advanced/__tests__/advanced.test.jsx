@@ -8,13 +8,13 @@ import {
   vi,
 } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import App from '../App.tsx';
-import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import React from 'react';
+import App from '../App.tsx';
 import Cart from '../components/templates/Cart.tsx';
-import CartSelectBox from '../components/molecules/CartSelectBox.tsx';
 import { pickItemId } from '../redux/features/cart/cartSlice';
+import { updatePrice } from '../redux/features/productList/productSlice.ts';
 import {
   LIGHTNING_SALE_DELAY,
   LIGHTNING_SALE_INTERVAL,
@@ -305,7 +305,7 @@ describe('advanced test', () => {
       // 2. 모킹된 초기 상태 정의
       const store = mockStore({
         cart: {
-          items: [],
+          items: {},
           totalPrice: 0,
           discountedPrice: 0,
           discount: 0,
@@ -313,21 +313,21 @@ describe('advanced test', () => {
           lastPickItemId: 'p1',
         },
         productStore: {
-          productsList: [
-            {
+          productList: {
+            p1: {
               id: 'p1',
               name: '상품1',
               price: 10000,
               quantity: 50,
               discount: 0.1,
             },
-          ],
+          },
         },
       });
 
       render(
         <Provider store={store}>
-          <App />
+          <Cart />
         </Provider>
       );
 
@@ -341,6 +341,14 @@ describe('advanced test', () => {
       // When: 번개세일 인터벌 실행 및 타이머 경과
       vi.advanceTimersByTime(LIGHTNING_SALE_DELAY); // 첫 번째 setTimeout 경과
       vi.advanceTimersByTime(LIGHTNING_SALE_INTERVAL); // 첫 번째 setInterval 경과
+
+      // Then: 가격 업데이트 함수가 호출됐는지 확인
+      const actions = store.getActions();
+      const checkFc = {
+        type: updatePrice.type,
+        payload: { id: 'p1', changePrice: 8000 },
+      };
+      expect(actions).toEqual([checkFc]);
 
       // Then: 번개세일 팝업 / 셀렉트박스 업데이트 확인
       expect(window.alert).toHaveBeenCalledWith(
@@ -356,7 +364,7 @@ describe('advanced test', () => {
       // 2. 모킹된 초기 상태 정의
       const store = mockStore({
         cart: {
-          items: [],
+          items: {},
           totalPrice: 0,
           discountedPrice: 0,
           discount: 0,
@@ -364,28 +372,28 @@ describe('advanced test', () => {
           lastPickItemId: 'p2',
         },
         productStore: {
-          productsList: [
-            {
+          productList: {
+            p1: {
               id: 'p1',
               name: '상품1',
               price: 10000,
               quantity: 50,
               discount: 0.1,
             },
-            {
+            p2: {
               id: 'p2',
-              name: '상품1',
+              name: '상품2',
               price: 10000,
               quantity: 0,
               discount: 0.25,
             },
-          ],
+          },
         },
       });
 
       render(
         <Provider store={store}>
-          <App />
+          <Cart />
         </Provider>
       );
 
@@ -394,6 +402,14 @@ describe('advanced test', () => {
       // When: 번개세일 인터벌 실행 및 타이머 경과
       vi.advanceTimersByTime(SUGGESTION_DISCOUNT_DELAY); // 첫 번째 setTimeout 경과
       vi.advanceTimersByTime(SUGGESTION_DISCOUNT_INTERVAL); // 첫 번째 setInterval 경과
+
+      // Then: 가격 업데이트 함수가 호출됐는지 확인
+      const actions = store.getActions();
+      const checkFc = {
+        type: updatePrice.type,
+        payload: { id: 'p1', changePrice: 9500 },
+      };
+      expect(actions).toEqual([checkFc]);
 
       // Then: 번개세일 팝업 / 셀렉트박스 업데이트 확인
       expect(window.alert).toHaveBeenCalledWith(
@@ -548,29 +564,29 @@ describe('advanced test', () => {
       const mockStore = configureMockStore();
       const store = mockStore({
         cart: {
-          lastPickItemId: 'p1',
-          items: [],
+          items: {},
           totalPrice: 0,
           discountedPrice: 0,
+          discount: 0,
+          point: 0,
+          lastPickItemId: 'p1',
         },
         productStore: {
-          productsList: [
-            {
+          productList: {
+            p1: {
               id: 'p1',
               name: '상품1',
               price: 10000,
               quantity: 50,
               discount: 0.1,
             },
-          ],
+          },
         },
       });
 
       const { getByTestId } = render(
         <Provider store={store}>
-          <CartSelectBox
-            productList={store.getState().productStore.productsList}
-          />
+          <Cart />
         </Provider>
       );
 
