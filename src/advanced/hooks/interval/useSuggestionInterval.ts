@@ -1,58 +1,57 @@
 import { updatePrice } from '@advanced/redux/features/productList/productSlice';
 import { getDiscountedPrice } from '@advanced/utils/getDiscountedPrice';
-import intervalManager from '@advanced/utils/intervalManager';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@advanced/redux/store';
+import { Dispatch } from '@reduxjs/toolkit';
+import { useEffect, useRef } from 'react';
 import { find } from 'lodash-es';
 import {
   SUGGESTION_DISCOUNT_INTERVAL,
   SUGGESTION_DISCOUNT_DELAY,
   SUGGESTION_DISCOUNT_RATE,
-  SUGGESTION_INTERVAL_KEY,
 } from '@advanced/constants/discount';
+import { getSuggestItem } from '@advanced/service/discount/suggestion/getSuggestItem';
 
 // 추천 할인 로직
-export const useSuggestionDiscount = () => {
-  const { addInterval, clearInterval } = intervalManager;
-  const { productList } = useSelector((state: RootState) => state.productStore);
-  const { lastPickItemId } = useSelector((state: RootState) => state.cart);
-  const dispatch = useDispatch();
+export const useSuggestionInterval = (
+  productList: ItemType[],
+  lastPickItemId: string,
+  dispatch: Dispatch
+) => {
+  const productsRef = useRef(productList);
+  const lastIdRef = useRef(lastPickItemId);
 
-  const suggestionInterval = () => {
-    return setTimeout(() => {
-      // 기존 interval 제거
-      clearInterval(SUGGESTION_INTERVAL_KEY);
+  // 제품 리스트 최신화
+  useEffect(() => {
+    productsRef.current = productList;
+  }, [productList]);
 
-      // interval 등록
-      addInterval(
-        SUGGESTION_INTERVAL_KEY,
-        suggestionDiscountProcess,
-        SUGGESTION_DISCOUNT_INTERVAL
+  // 마지막 선택한 상품 최신화
+  useEffect(() => {
+    lastIdRef.current = lastPickItemId;
+  }, [lastPickItemId]);
+
+  // 인터벌 등록
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const suggestItem = getSuggestItem(
+        productsRef.current,
+        lastIdRef.current
       );
-    }, SUGGESTION_DISCOUNT_DELAY);
-  };
+      if (!suggestItem) return;
 
-  const suggestionDiscountProcess = () => {
-    // 마지막 선택 아이템과 다르고 재고가 있는 추천 상품 찾기
-    const suggestedItem = find(
-      productList,
-      ({ id, quantity }: ItemType) => id !== lastPickItemId && quantity > 0
-    );
+      const { id, name, price } = suggestItem;
 
-    if (!suggestedItem) return;
+      // 추천 제품 할인 적용
+      const applyDicountPrice = getDiscountedPrice(
+        price,
+        SUGGESTION_DISCOUNT_RATE
+      );
+      dispatch(updatePrice({ id, changePrice: applyDicountPrice }));
 
-    const { id, name, price } = suggestedItem;
+      // 할인 팝업
+      alert(`${name}은(는) 어떠세요? 지금 구매하시면 5% 추가 할인!`);
+    }, SUGGESTION_DISCOUNT_INTERVAL);
+    setTimeout(() => {}, SUGGESTION_DISCOUNT_DELAY);
 
-    // 추천 제품 할인 적용
-    const applyDicountPrice = getDiscountedPrice(
-      price,
-      SUGGESTION_DISCOUNT_RATE
-    );
-    dispatch(updatePrice({ id, changePrice: applyDicountPrice }));
-
-    // 할인 팝업
-    alert(`${name}은(는) 어떠세요? 지금 구매하시면 5% 추가 할인!`);
-  };
-
-  return { suggestionInterval, suggestionDiscountProcess };
+    return () => clearInterval(intervalId);
+  }, []);
 };
