@@ -1,9 +1,8 @@
-import { getDiscountSummary } from '@advanced/hooks/discount/getDiscountSummary';
+import { applyDiscountSummary } from '@advanced/service/discount/applyDiscountSummary';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { find, findIndex } from 'lodash-es';
 
 interface CartState {
-  items: ItemType[];
+  items: { [key: string]: ItemType };
   totalPrice: number;
   discountedPrice: number;
   discount: number;
@@ -12,12 +11,12 @@ interface CartState {
 }
 
 const initialState: CartState = {
-  items: [],
+  items: {},
   totalPrice: 0,
   discountedPrice: 0,
   discount: 0,
   point: 0,
-  lastPickItemId: '',
+  lastPickItemId: 'p1',
 };
 
 const cartSlice = createSlice({
@@ -30,45 +29,52 @@ const cartSlice = createSlice({
     },
     decreaseItem: (state, action: PayloadAction<{ id: string }>) => {
       const { id } = action.payload;
-      const index = findIndex(state.items, (item) => item.id === id);
 
-      if (index === -1) return;
-
-      const item = state.items[index];
+      const findItem = state.items[id];
+      if (!findItem) return;
 
       // 장바구니에 있을 경우 수량 - 1
-      if (item) item.quantity--;
+      findItem.quantity--;
 
       // 수량이 0이면 장바구니에서 제거
-      if (item.quantity === 0) state.items.splice(index, 1);
+      if (findItem.quantity === 0) delete state.items[id];
 
       // 장바구니 총액 업데이트
-      state.totalPrice -= item.price;
+      state.totalPrice -= findItem.price;
+
+      // 값 배열로 변환
+      const cartValueList = Object.values(state.items);
 
       // (10개이상 , 대량, 요일 등 ) 할인 이벤트 조건부 적용
-      const [price, rate] = getDiscountSummary(state.items);
-      state.discountedPrice = price;
-      state.discount = rate;
+      const [price, rate] = applyDiscountSummary(cartValueList);
+
+      // 할인된 총액, 할인율 state 업데이트
+      [state.discountedPrice, state.discount] = [price, rate];
 
       // 포인트 업데이트
       state.point += Math.floor(price / 1000);
     },
-    addItem: (state, action: PayloadAction<ItemType>) => {
-      const updateItem = action.payload;
-      const { id } = updateItem;
+    addItem: (
+      state,
+      action: PayloadAction<{ id: string; productData: ItemType }>
+    ) => {
+      const { id, productData } = action.payload;
 
-      const existingItem = find(state.items, (item) => item.id === id);
+      const existingItem = state.items[id];
 
       // 장바구니에 있을 경우 수량 + 1
       if (existingItem) existingItem.quantity++;
       // 장바구니에 없을 경우 추가
-      else state.items.push({ ...updateItem, quantity: 1 });
+      else state.items[id] = { ...productData, quantity: 1 };
 
       // 장바구니 총액 업데이트
-      state.totalPrice += updateItem.price;
+      state.totalPrice += productData.price;
+
+      // 값 배열로 변환
+      const cartValueList = Object.values(state.items);
 
       // (10개이상 , 대량, 요일 등 ) 할인 이벤트 조건부 적용
-      const [price, rate] = getDiscountSummary(state.items);
+      const [price, rate] = applyDiscountSummary(cartValueList);
       state.discountedPrice = price;
       state.discount = rate;
 
@@ -77,20 +83,22 @@ const cartSlice = createSlice({
     },
     removeItem: (state, action: PayloadAction<{ id: string }>) => {
       const { id } = action.payload;
-      const index = findIndex(state.items, (item) => item.id === id);
+      const existingItem = state.items[id];
 
-      if (index === -1) return;
-
-      const item = state.items[index];
-
-      // 장바구니에서 제거
-      state.items.splice(index, 1);
+      // 장바구니에 없으면 return
+      if (!existingItem) return;
 
       // 장바구니 총액 업데이트
-      state.totalPrice -= item.price * item.quantity;
+      state.totalPrice -= existingItem.price * existingItem.quantity;
+
+      // 장바구니에서 제거
+      delete state.items[id];
+
+      // 값 배열로 변환
+      const cartValueList = Object.values(state.items);
 
       // (10개이상 , 대량, 요일 등 ) 할인 이벤트 조건부 적용
-      const [price, rate] = getDiscountSummary(state.items);
+      const [price, rate] = applyDiscountSummary(cartValueList);
       state.discountedPrice = price;
       state.discount = rate;
     },

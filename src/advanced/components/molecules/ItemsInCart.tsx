@@ -1,19 +1,27 @@
-import { useDecreaseToCart } from '@advanced/hooks/cart/useDecreaseToCart';
-import { useRemoveToCart } from '@advanced/hooks/cart/useRemoveToCart';
-import { useAddToCart } from '@advanced/hooks/cart/useAddToCart';
+import { decreaseToCart } from '@advanced/service/cart/decreaseToCart';
+import { removeToCart } from '@advanced/service/cart/removeToCart';
+import { addToCart } from '@advanced/service/cart/addToCart';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@advanced/redux/store';
+import React, { useMemo } from 'react';
 import { map } from 'lodash-es';
-import React from 'react';
 
 const ItemsInCart: React.FC<{ items: ItemType[] }> = ({ items }) => {
-  const addToCart = useAddToCart();
-  const removeToCart = useRemoveToCart();
-  const decreaseToCart = useDecreaseToCart();
+  const { productList } = useSelector((state: RootState) => state.productStore);
+  const dispatch = useDispatch();
 
-  const handleAddToCart = (id: string) => addToCart(id);
+  // - 버튼
+  const handleDecreaseToCart = (id: string) => {
+    decreaseToCart(productList[id], dispatch);
+  };
 
-  const handleRemoveToCart = (id: string) => removeToCart(id);
+  // + 버튼
+  const handleAddToCart = (id: string) => addToCart(productList[id], dispatch);
 
-  const handleDecreaseToCart = (id: string) => decreaseToCart(id);
+  // 제거 버튼
+  const handleRemoveToCart = (id: string) => {
+    removeToCart(productList[id], dispatch);
+  };
 
   return (
     <div id="cart-items" data-testid="cart-items">

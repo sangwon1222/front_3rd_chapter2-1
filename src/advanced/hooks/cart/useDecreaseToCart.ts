@@ -3,23 +3,22 @@ import { decreaseItem } from '@redux/features/cart/cartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@redux/store';
 import { useCallback } from 'react';
-import { find } from 'lodash-es';
 
 export const useDecreaseToCart = () => {
   const dispatch = useDispatch();
   const { items } = useSelector((state: RootState) => state.cart);
 
-  const decreaseToCart = useCallback(
-    (productId: string) => {
-      const findItemInCart = find(items, { id: productId });
+  const decreaseToCart = (productId: string) => {
+    const item = items[productId];
 
-      if (findItemInCart) {
-        dispatch(decreaseItem({ id: productId }));
-        dispatch(updateStock({ id: productId, changeStock: 1 }));
-      }
-    },
-    [items]
-  );
+    // 장바구니에 없는 항목이면 return
+    if (!item) return;
 
-  return decreaseToCart;
+    // 장바구니 수량 -1 업데이트
+    dispatch(decreaseItem({ id: productId }));
+    // 재고 수량 +1 업데이트
+    dispatch(updateStock({ id: productId, changeStock: 1 }));
+  };
+
+  return { decreaseToCart };
 };
