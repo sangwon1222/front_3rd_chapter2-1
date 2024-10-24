@@ -404,11 +404,14 @@ describe('advanced test', () => {
       vi.advanceTimersByTime(SUGGESTION_DISCOUNT_INTERVAL); // 첫 번째 setInterval 경과
 
       // Then: 가격 업데이트 함수가 호출됐는지 확인
-      const actions = store.getActions();
+
       const checkFc = {
         type: updatePrice.type,
         payload: { id: 'p1', changePrice: 9500 },
       };
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
       expect(actions).toEqual([checkFc]);
 
       // Then: 번개세일 팝업 / 셀렉트박스 업데이트 확인

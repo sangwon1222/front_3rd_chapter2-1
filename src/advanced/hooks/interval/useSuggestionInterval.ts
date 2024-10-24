@@ -2,7 +2,6 @@ import { updatePrice } from '@advanced/redux/features/productList/productSlice';
 import { getDiscountedPrice } from '@advanced/utils/getDiscountedPrice';
 import { Dispatch } from '@reduxjs/toolkit';
 import { useEffect, useRef } from 'react';
-import { find } from 'lodash-es';
 import {
   SUGGESTION_DISCOUNT_INTERVAL,
   SUGGESTION_DISCOUNT_DELAY,
@@ -41,17 +40,17 @@ export const useSuggestionInterval = (
       const { id, name, price } = suggestItem;
 
       // 추천 제품 할인 적용
-      const applyDicountPrice = getDiscountedPrice(
+      const applyDiscountPrice = getDiscountedPrice(
         price,
         SUGGESTION_DISCOUNT_RATE
       );
-      dispatch(updatePrice({ id, changePrice: applyDicountPrice }));
+      dispatch(updatePrice({ id, changePrice: applyDiscountPrice }));
 
       // 할인 팝업
       alert(`${name}은(는) 어떠세요? 지금 구매하시면 5% 추가 할인!`);
     }, SUGGESTION_DISCOUNT_INTERVAL);
-    setTimeout(() => {}, SUGGESTION_DISCOUNT_DELAY);
 
+    setTimeout(() => intervalId, SUGGESTION_DISCOUNT_DELAY);
     return () => clearInterval(intervalId);
   }, []);
 };
