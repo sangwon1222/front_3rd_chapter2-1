@@ -13,11 +13,11 @@ const AlertPopUp: React.FC = () => {
     const lightningTimeoutId = lightningInterval();
 
     // 추천 할인 interval
-    const suggetionTimeoutId = suggestionInterval();
+    const suggestionTimeoutId = suggestionInterval();
 
     return () => {
       clearTimeout(lightningTimeoutId);
-      clearTimeout(suggetionTimeoutId);
+      clearTimeout(suggestionTimeoutId);
       clearAllIntervals();
     };
   }, []);
