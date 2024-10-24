@@ -37,10 +37,7 @@ export const useLightningInterval = (
       alert(`번개세일! ${name}이(가) 20% 할인 중입니다!`);
     }, LIGHTNING_SALE_INTERVAL);
 
-    setTimeout(() => {
-      intervalId;
-    }, LIGHTNING_SALE_DELAY);
-
+    setTimeout(() => intervalId, LIGHTNING_SALE_DELAY);
     return () => clearInterval(intervalId);
   }, []);
 };

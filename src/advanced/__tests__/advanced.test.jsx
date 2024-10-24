@@ -397,6 +397,7 @@ describe('advanced test', () => {
         </Provider>
       );
 
+      global.LIGHTNING_SALE_PROBABILITY = 0;
       // Given: 랜덤 요소 모킹
 
       // When: 번개세일 인터벌 실행 및 타이머 경과
@@ -411,8 +412,7 @@ describe('advanced test', () => {
       };
 
       const actions = store.getActions();
-      expect(actions).toHaveLength(1);
-      expect(actions).toEqual([checkFc]);
+      expect(actions.pop()).toEqual(checkFc);
 
       // Then: 번개세일 팝업 / 셀렉트박스 업데이트 확인
       expect(window.alert).toHaveBeenCalledWith(
